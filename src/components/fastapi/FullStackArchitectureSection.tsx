@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Terminal,
   Database,
@@ -25,17 +25,35 @@ import {
   Eye,
   Download,
   Flame,
+  Key,
+  Shield,
+  Container,
+  BarChart2,
+  Share2,
+  Network,
+  Lock,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 
 export const FullStackArchitectureSection: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<
-    'fastapi' | 'pgvector' | 'chromadb' | 'langchain' | 'ollama' | 'sse' | 'playwright' | 'multimodel'
+    | 'fastapi'
+    | 'pgvector'
+    | 'chromadb'
+    | 'neo4j'
+    | 'redis_streams'
+    | 'vault'
+    | 'langchain'
+    | 'multimodel'
+    | 'ollama'
+    | 'sse'
+    | 'playwright'
+    | 'devops'
+    | 'otel'
   >('fastapi');
 
   // FastAPI Explorer State
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>('GET /api/v1/opportunities');
-  const [requestBody, setRequestBody] = useState<string>('{\n  "query": "neuromorphic grant",\n  "min_score": 90\n}');
   const [fastApiOutput, setFastApiOutput] = useState<string | null>(null);
   const [isCallingFastApi, setIsCallingFastApi] = useState<boolean>(false);
 
@@ -46,7 +64,7 @@ FROM knowledge_embeddings
 ORDER BY embedding <=> '[0.042, -0.015, 0.089, ...]'
 LIMIT 5;`
   );
-  const [pgvectorResult, setPgvectorResult] = useState<any[]>([
+  const [pgvectorResult] = useState<any[]>([
     { id: 'vec-108', title: 'NSF CAREER: Bio-Inspired Neuromorphic Computing', source: 'Grants.gov', similarity: 0.9842, distance: 0.0158 },
     { id: 'vec-214', title: 'Asynchronous Event-Based Graph Neural Networks', source: 'arXiv:2603.11984', similarity: 0.9512, distance: 0.0488 },
     { id: 'vec-302', title: 'DARPA Young Faculty Award Neuromorphic Spatial Odometry', source: 'Sam.gov', similarity: 0.9234, distance: 0.0766 },
@@ -57,7 +75,7 @@ LIMIT 5;`
   // ChromaDB State
   const [selectedCollection, setSelectedCollection] = useState<string>('research_papers_v2');
   const [chromaSearchText, setChromaSearchText] = useState<string>('sparse attention mechanism biological plasticity');
-  const [chromaResults, setChromaResults] = useState<any[]>([
+  const [chromaResults] = useState<any[]>([
     {
       id: 'doc-snn-01',
       score: 0.973,
@@ -72,6 +90,36 @@ LIMIT 5;`
     },
   ]);
   const [isQueryingChroma, setIsQueryingChroma] = useState<boolean>(false);
+
+  // Neo4j State
+  const [cypherQuery, setCypherQuery] = useState<string>(
+    `MATCH (p:Paper)-[:CITES]->(t:Topic {name: 'Neuromorphic Computing'})
+MATCH (p)-[:AUTHORED_BY]->(a:Researcher)-[:AFFILIATED_WITH]->(i:Institution)
+WHERE p.year >= 2025
+RETURN p.title, a.name, i.name, p.growth_velocity
+ORDER BY p.citations DESC LIMIT 10;`
+  );
+  const [cypherResults, setCypherResults] = useState<any[]>([
+    { paper: 'Spike-Driven Neuromorphic Optical Flow', author: 'Jun Phookan', institution: 'MIT CSAIL', growth: '+340% YoY' },
+    { paper: 'Event-Camera Graph Spatial Localization', author: 'Katherine Chen', institution: 'Stanford Bio-X', growth: '+215% YoY' },
+    { paper: 'Asynchronous Silicon STDP for Loihi-2', author: 'Marcus Vance', institution: 'Intel Neuromorphic Lab', growth: '+180% YoY' },
+  ]);
+  const [isExecutingCypher, setIsExecutingCypher] = useState<boolean>(false);
+
+  // Redis Streams State
+  const [redisStreamMessages] = useState<any[]>([
+    { id: '1725000000000-0', stream: 'events:approvals', payload: '{"action":"SUBMIT_NSF_PROPOSAL","risk":"critical","actor":"gcw-agent"}' },
+    { id: '1725000000001-0', stream: 'events:celery_tasks', payload: '{"task":"opportunity_scanner_v2","status":"SUCCESS","duration_ms":142}' },
+    { id: '1725000000002-0', stream: 'events:telemetry', payload: '{"cpu":34.2,"memory_mb":412,"open_sse_connections":18}' },
+  ]);
+
+  // Vault Secrets State
+  const [vaultSecrets] = useState<any[]>([
+    { path: 'secret/data/production/gemini_api_key', version: 'v3', status: 'Injected via mTLS (24h lease)', engine: 'kv-v2' },
+    { path: 'secret/data/production/firebase_service_account', version: 'v1', status: 'Active (us-west1)', engine: 'kv-v2' },
+    { path: 'secret/data/production/celery_redis_uri', version: 'v2', status: 'Active (TLS port 6379)', engine: 'kv-v2' },
+    { path: 'secret/data/production/pgvector_connection_pool', version: 'v4', status: 'Active (Pooled via PgBouncer)', engine: 'kv-v2' },
+  ]);
 
   // LangChain LCEL State
   const [chainInput, setChainInput] = useState<string>('NSF CAREER proposal for sparse neuromorphic visual odometry');
@@ -90,7 +138,6 @@ LIMIT 5;`
     { id: 'evt-1', time: new Date().toLocaleTimeString(), event: 'system.heartbeat', payload: '{"status": "alive", "active_workers": 4, "queue_depth": 0}' },
     { id: 'evt-2', time: new Date().toLocaleTimeString(), event: 'approval.pending', payload: '{"approval_id": "appr-fastapi-101", "action": "Submit NSF CAREER Proposal", "risk_level": "critical"}' },
   ]);
-  const [isSseConnected, setIsSseConnected] = useState<boolean>(true);
 
   // Playwright Browser State
   const [targetUrl, setTargetUrl] = useState<string>('https://grants.gov/search-grants');
@@ -104,7 +151,7 @@ const results = await page.$$eval('.opportunity-card', cards =>
   cards.map(c => ({ title: c.querySelector('h3').innerText, agency: c.querySelector('.agency').innerText }))
 );`
   );
-  const [browserLogs, setBrowserLogs] = useState<string[]>([
+  const [browserLogs] = useState<string[]>([
     '[Playwright] Launching Chromium headless instance (v124.0)...',
     '[Playwright] Navigating to https://grants.gov/search-grants...',
     '[Playwright] Injected DOM selectors: input[name="keyword"] matched.',
@@ -117,7 +164,7 @@ const results = await page.$$eval('.opportunity-card', cards =>
   const [delphiPrompt, setDelphiPrompt] = useState<string>(
     'Should we submit the event-camera neural odometry architecture to CVPR 2026 or ICML 2026?'
   );
-  const [delphiResults, setDelphiResults] = useState<any | null>({
+  const [delphiResults] = useState<any | null>({
     consensusVerdict: 'Target CVPR 2026 for benchmark challenge + submit theoretical convergence paper to ICML 2026.',
     confidenceScore: 0.96,
     models: [
@@ -128,6 +175,55 @@ const results = await page.$$eval('.opportunity-card', cards =>
     ],
   });
   const [isDeliberating, setIsDeliberating] = useState<boolean>(false);
+
+  // DevOps Manifest State
+  const [dockerComposeYaml] = useState<string>(`version: '3.9'
+services:
+  applet:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=\${GEMINI_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://atlas:pass@postgres:5432/atlas_db
+    depends_on:
+      - postgres
+      - redis
+      - chromadb
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: atlas_db
+      POSTGRES_USER: atlas
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:`);
+
+  // OpenTelemetry Traces State
+  const [otelTraces] = useState<any[]>([
+    { traceId: 'trace-8890-a1', service: 'fastapi-gateway', span: 'POST /api/v1/research/hypothesis', durationMs: 184, status: '200 OK' },
+    { traceId: 'trace-8890-a2', service: 'gemini-orchestrator', span: 'GoogleGenAI.generateContent', durationMs: 412, status: '200 OK' },
+    { traceId: 'trace-8890-a3', service: 'chromadb-retriever', span: 'query_collection(research_papers)', durationMs: 24, status: '200 OK' },
+    { traceId: 'trace-8890-a4', service: 'pgvector-store', span: 'HNSW_Cosine_Search', durationMs: 12, status: '200 OK' },
+  ]);
 
   // Handle FastAPI Execution
   const handleExecuteFastApi = async () => {
@@ -153,19 +249,11 @@ const results = await page.$$eval('.opportunity-card', cards =>
     }
   };
 
-  // Handle SQL Execution
-  const handleRunSql = () => {
-    setIsExecutingSql(true);
+  // Handle Cypher Query
+  const handleExecuteCypher = () => {
+    setIsExecutingCypher(true);
     setTimeout(() => {
-      setIsExecutingSql(false);
-    }, 400);
-  };
-
-  // Handle Chroma Query
-  const handleQueryChroma = () => {
-    setIsQueryingChroma(true);
-    setTimeout(() => {
-      setIsQueryingChroma(false);
+      setIsExecutingCypher(false);
     }, 400);
   };
 
@@ -217,14 +305,6 @@ const results = await page.$$eval('.opportunity-card', cards =>
     }, 800);
   };
 
-  // Handle Delphi Deliberation
-  const handleRunDelphi = () => {
-    setIsDeliberating(true);
-    setTimeout(() => {
-      setIsDeliberating(false);
-    }, 600);
-  };
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto text-slate-100 p-4 lg:p-6">
       {/* Header */}
@@ -235,22 +315,22 @@ const results = await page.$$eval('.opportunity-card', cards =>
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-mono font-semibold flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5 text-indigo-400" />
-                CORE ARCHITECTURE & INFRASTRUCTURE
+                SYSTEM ARCHITECTURE & INFRASTRUCTURE CONSOLE
               </span>
-              <span className="text-xs text-slate-400 font-mono">• 30 Production Modules Active</span>
+              <span className="text-xs text-slate-400 font-mono">• All Infrastructure Modules Operational</span>
             </div>
             <h1 className="text-2xl font-bold text-slate-100 mt-2 flex items-center gap-2">
-              Full-Stack Backend & AI Orchestration Suite
+              Full-Stack Backend, Vector Stores & AI Orchestration
             </h1>
             <p className="text-xs text-slate-400 max-w-3xl mt-1">
-              Direct interactive consoles for Python FastAPI OpenAPI endpoints, Celery & Redis task queues, pgvector similarity workbench, ChromaDB vector collections, LangChain LCEL workflows, Ollama local inference, SSE live streaming, and Playwright browser automation.
+              Direct telemetry and execution consoles for Python FastAPI REST endpoints, PostgreSQL + pgvector, ChromaDB, Neo4j Graph Cypher, Redis Streams Event Bus, HashiCorp Vault Secrets, LangChain LCEL, Multi-Model Deliberation, Ollama Local Inference, Playwright Browser Automation, Docker Compose/Kubernetes, and OpenTelemetry Tracing.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-emerald-400 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              FastAPI v1: ONLINE (Port 3000/8000)
+              Cluster Status: HEALTHY (Port 3000)
             </div>
           </div>
         </div>
@@ -258,14 +338,19 @@ const results = await page.$$eval('.opportunity-card', cards =>
         {/* Sub Navigation */}
         <div className="flex flex-wrap gap-2 pt-6 mt-6 border-t border-slate-800/80 font-mono text-xs">
           {[
-            { id: 'fastapi', label: 'Python FastAPI / Swagger', icon: Code2, badge: 'REST' },
+            { id: 'fastapi', label: 'Python FastAPI / OpenAPI', icon: Code2, badge: 'REST' },
             { id: 'pgvector', label: 'PostgreSQL + pgvector', icon: Database, badge: 'SQL' },
             { id: 'chromadb', label: 'ChromaDB Vector Store', icon: Layers, badge: 'RAG' },
+            { id: 'neo4j', label: 'Neo4j Knowledge Graph', icon: Network, badge: 'Cypher' },
+            { id: 'redis_streams', label: 'Redis Streams Event Bus', icon: Activity, badge: 'Queue' },
+            { id: 'vault', label: 'HashiCorp Vault Secrets', icon: Shield, badge: 'Security' },
             { id: 'langchain', label: 'LangChain LCEL Chains', icon: Box, badge: 'Agent' },
+            { id: 'multimodel', label: 'Multi-Model Deliberation', icon: Sparkles, badge: 'Ensemble' },
             { id: 'ollama', label: 'Ollama Local Models', icon: Cpu, badge: 'LLM' },
             { id: 'sse', label: 'SSE Real-Time Stream', icon: Radio, badge: 'LIVE' },
             { id: 'playwright', label: 'Playwright Browser Agent', icon: Globe, badge: 'DOM' },
-            { id: 'multimodel', label: 'Multi-Model Delphi Consensus', icon: Sparkles, badge: 'Deliberation' },
+            { id: 'devops', label: 'Docker & Kubernetes (K8s)', icon: Container, badge: 'DevOps' },
+            { id: 'otel', label: 'OpenTelemetry & Grafana', icon: BarChart2, badge: 'Traces' },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeSubTab === tab.id;
@@ -433,7 +518,10 @@ const results = await page.$$eval('.opportunity-card', cards =>
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400 font-mono">Table: `knowledge_embeddings` (1536 dims)</span>
               <button
-                onClick={handleRunSql}
+                onClick={() => {
+                  setIsExecutingSql(true);
+                  setTimeout(() => setIsExecutingSql(false), 400);
+                }}
                 disabled={isExecutingSql}
                 className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
               >
@@ -521,7 +609,10 @@ const results = await page.$$eval('.opportunity-card', cards =>
             </div>
 
             <button
-              onClick={handleQueryChroma}
+              onClick={() => {
+                setIsQueryingChroma(true);
+                setTimeout(() => setIsQueryingChroma(false), 400);
+              }}
               disabled={isQueryingChroma}
               className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer"
             >
@@ -558,7 +649,133 @@ const results = await page.$$eval('.opportunity-card', cards =>
         </div>
       )}
 
-      {/* 4. LangChain LCEL Section */}
+      {/* 4. Neo4j Knowledge Graph Section */}
+      {activeSubTab === 'neo4j' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                <Network className="w-4 h-4 text-emerald-400" />
+                Neo4j Cypher Query Terminal
+              </h2>
+              <span className="text-[10px] font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800">
+                Neo4j 5 Enterprise
+              </span>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-mono text-slate-400 block mb-1.5">
+                Cypher Graph Query:
+              </label>
+              <textarea
+                value={cypherQuery}
+                onChange={(e) => setCypherQuery(e.target.value)}
+                rows={6}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 text-xs font-mono text-emerald-300 outline-none resize-none"
+              />
+            </div>
+
+            <button
+              onClick={handleExecuteCypher}
+              disabled={isExecutingCypher}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isExecutingCypher ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-white" />}
+              Execute Cypher Match
+            </button>
+          </div>
+
+          <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              Graph Triples & Traversal Results
+            </h2>
+
+            <div className="space-y-2.5">
+              {cypherResults.map((item, idx) => (
+                <div key={idx} className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-200">{item.paper}</span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                      {item.growth}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+                    <span>Researcher: {item.author}</span>
+                    <span>Institution: {item.institution}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Redis Streams Event Bus */}
+      {activeSubTab === 'redis_streams' && (
+        <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-rose-400" />
+              <h2 className="text-sm font-semibold text-slate-200">
+                Redis 7 Streams Event Bus & Consumer Groups (XREADGROUP)
+              </h2>
+            </div>
+            <span className="text-[10px] font-mono text-rose-400 bg-rose-950 px-2.5 py-0.5 rounded border border-rose-800">
+              redis://127.0.0.1:6379/0
+            </span>
+          </div>
+
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs space-y-3">
+            {redisStreamMessages.map((msg) => (
+              <div key={msg.id} className="p-3 bg-slate-900/80 border border-slate-800 rounded-lg flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-rose-400 font-bold">stream: {msg.stream}</span>
+                    <span className="text-slate-500 text-[10px]">ID: {msg.id}</span>
+                  </div>
+                  <div className="text-slate-300 mt-1 text-[11px]">{msg.payload}</div>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded">ACKed</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 6. HashiCorp Vault Secrets */}
+      {activeSubTab === 'vault' && (
+        <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Shield className="w-4 h-4 text-amber-400" />
+              <h2 className="text-sm font-semibold text-slate-200">
+                HashiCorp Vault Secret Management (mTLS Secured)
+              </h2>
+            </div>
+            <span className="text-[10px] font-mono text-amber-400 bg-amber-950 px-2.5 py-0.5 rounded border border-amber-800">
+              Vault KV v2 Engine
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {vaultSecrets.map((sec, idx) => (
+              <div key={idx} className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-amber-300 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-amber-400" />
+                    {sec.path}
+                  </span>
+                  <span className="text-[10px] font-mono bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{sec.version}</span>
+                </div>
+                <p className="text-xs text-slate-400">{sec.status}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 7. LangChain LCEL Section */}
       {activeSubTab === 'langchain' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
@@ -645,7 +862,69 @@ const results = await page.$$eval('.opportunity-card', cards =>
         </div>
       )}
 
-      {/* 5. Ollama Local Models Section */}
+      {/* 8. Multi-Model Deliberation Section */}
+      {activeSubTab === 'multimodel' && (
+        <div className="space-y-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                Multi-Model Delphi Consensus Deliberator
+              </h2>
+              <span className="text-[10px] font-mono bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800">
+                Ensemble Round-Table
+              </span>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={delphiPrompt}
+                onChange={(e) => setDelphiPrompt(e.target.value)}
+                className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-xs text-slate-100 font-mono outline-none"
+              />
+              <button
+                onClick={() => {
+                  setIsDeliberating(true);
+                  setTimeout(() => setIsDeliberating(false), 600);
+                }}
+                disabled={isDeliberating}
+                className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer"
+              >
+                {isDeliberating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-white" />}
+                Deliberate
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {delphiResults?.models.map((m: any) => (
+              <div key={m.name} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-200">{m.name}</span>
+                  <span className="text-[10px] font-mono text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">
+                    {m.verdict}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed font-sans">{m.reasoning}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-5 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-900 border border-indigo-800/60 rounded-2xl flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-xs font-mono font-bold text-indigo-300">SYNTHESIZED DELPHI CONSENSUS VERDICT:</span>
+              <p className="text-sm font-semibold text-slate-100">{delphiResults?.consensusVerdict}</p>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-mono text-slate-400">Confidence:</span>
+              <div className="text-lg font-bold text-emerald-400">{(delphiResults?.confidenceScore * 100).toFixed(0)}%</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. Ollama Local Inference */}
       {activeSubTab === 'ollama' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
@@ -725,7 +1004,7 @@ const results = await page.$$eval('.opportunity-card', cards =>
         </div>
       )}
 
-      {/* 6. SSE Real-Time Updates Section */}
+      {/* 10. SSE Real-Time Updates */}
       {activeSubTab === 'sse' && (
         <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-5">
           <div className="flex items-center justify-between">
@@ -776,7 +1055,7 @@ const results = await page.$$eval('.opportunity-card', cards =>
         </div>
       )}
 
-      {/* 7. Playwright Browser Automation */}
+      {/* 11. Playwright Browser Automation */}
       {activeSubTab === 'playwright' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
@@ -842,61 +1121,55 @@ const results = await page.$$eval('.opportunity-card', cards =>
         </div>
       )}
 
-      {/* 8. Multi-Model Delphi Consensus */}
-      {activeSubTab === 'multimodel' && (
-        <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
-                Multi-Model Delphi Consensus Deliberator
+      {/* 12. Docker & Kubernetes (DevOps) */}
+      {activeSubTab === 'devops' && (
+        <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Container className="w-4 h-4 text-sky-400" />
+              <h2 className="text-sm font-semibold text-slate-200">
+                Docker Compose & Kubernetes Cluster Helm Configurations
               </h2>
-              <span className="text-[10px] font-mono bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800">
-                Ensemble Round-Table
-              </span>
             </div>
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={delphiPrompt}
-                onChange={(e) => setDelphiPrompt(e.target.value)}
-                className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl p-3 text-xs text-slate-100 font-mono outline-none"
-              />
-              <button
-                onClick={handleRunDelphi}
-                disabled={isDeliberating}
-                className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer"
-              >
-                {isDeliberating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-white" />}
-                Deliberate
-              </button>
-            </div>
+            <span className="text-[10px] font-mono text-sky-400 bg-sky-950 px-2.5 py-0.5 rounded border border-sky-800">
+              docker-compose.production.yml
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {delphiResults?.models.map((m: any) => (
-              <div key={m.name} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">{m.name}</span>
-                  <span className="text-[10px] font-mono text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">
-                    {m.verdict}
-                  </span>
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-sky-300 overflow-x-auto">
+            <pre className="whitespace-pre-wrap leading-relaxed">{dockerComposeYaml}</pre>
+          </div>
+        </div>
+      )}
+
+      {/* 13. OpenTelemetry & Grafana */}
+      {activeSubTab === 'otel' && (
+        <div className="space-y-4 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <BarChart2 className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-slate-200">
+                OpenTelemetry Distributed Tracing & Jaeger Spans
+              </h2>
+            </div>
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">
+              OTel Collector: localhost:4318
+            </span>
+          </div>
+
+          <div className="space-y-2 font-mono text-xs">
+            {otelTraces.map((tr) => (
+              <div key={tr.traceId} className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-indigo-400 font-bold">{tr.service}</span>
+                  <span className="text-slate-300 ml-2">{tr.span}</span>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed font-sans">{m.reasoning}</p>
+                <div className="flex items-center space-x-3">
+                  <span className="text-slate-400">{tr.durationMs}ms</span>
+                  <span className="text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded text-[10px]">{tr.status}</span>
+                </div>
               </div>
             ))}
-          </div>
-
-          <div className="p-5 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-900 border border-indigo-800/60 rounded-2xl flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-xs font-mono font-bold text-indigo-300">SYNTHESIZED DELPHI CONSENSUS VERDICT:</span>
-              <p className="text-sm font-semibold text-slate-100">{delphiResults?.consensusVerdict}</p>
-            </div>
-            <div className="text-right">
-              <span className="text-xs font-mono text-slate-400">Confidence:</span>
-              <div className="text-lg font-bold text-emerald-400">{(delphiResults?.confidenceScore * 100).toFixed(0)}%</div>
-            </div>
           </div>
         </div>
       )}

@@ -74,10 +74,14 @@ import { IdeaIncubatorView } from './modules/IdeaIncubatorView';
 import { SideHustleScraperView } from './modules/SideHustleScraperView';
 import { EssayArchitectView } from './modules/EssayArchitectView';
 import { ProjectBuilderView } from './modules/ProjectBuilderView';
-import { Zap, Server, Briefcase, Globe, FileCheck, Mail, Lightbulb, TrendingUp, PenTool, GitBranch } from 'lucide-react';
+import { GeneralCognitiveWorkerView } from './modules/GeneralCognitiveWorkerView';
+import { INITIAL_GCW_STATE } from '../data/mockInitialData';
+import { GCWState } from '../types';
+import { Zap, Server, Briefcase, Globe, FileCheck, Mail, Lightbulb, TrendingUp, PenTool, GitBranch, BrainCircuit } from 'lucide-react';
 
 export type FastApiTabId =
   | 'command_center'
+  | 'gcw_cognitive_worker'
   | 'architecture_stack'
   | 'celery_redis'
   | 'workspace'
@@ -145,6 +149,7 @@ export const FastApiLiveApp: React.FC = () => {
   const [landingPages, setLandingPages] = useState<FastApiLandingPage[]>([]);
   const [pitchDecks, setPitchDecks] = useState<FastApiPitchDeck[]>([]);
   const [modelConfig, setModelConfig] = useState<FastApiModelRouterConfig | null>(null);
+  const [gcwState, setGcwState] = useState<GCWState>(INITIAL_GCW_STATE);
 
   // Handle SSE Real-Time Event Dispatch
   const handleSseEvent = useCallback((event: any) => {
@@ -480,6 +485,12 @@ export const FastApiLiveApp: React.FC = () => {
   const navTabs = [
     { id: 'command_center', label: 'Executive Dashboard', icon: Sparkles },
     {
+      id: 'gcw_cognitive_worker',
+      label: 'General Cognitive Worker (AGI)',
+      icon: BrainCircuit,
+      badge: 'Module 20',
+    },
+    {
       id: 'architecture_stack',
       label: 'FastAPI & AI Stack',
       icon: Server,
@@ -758,6 +769,13 @@ export const FastApiLiveApp: React.FC = () => {
                 onScan={handleScanOpportunities}
               />
             </div>
+          )}
+
+          {activeTab === 'gcw_cognitive_worker' && (
+            <GeneralCognitiveWorkerView
+              gcwState={gcwState}
+              onUpdateState={setGcwState}
+            />
           )}
 
           {activeTab === 'architecture_stack' && (
