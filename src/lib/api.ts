@@ -725,4 +725,51 @@ export async function executeMasterFeature(
   });
 }
 
+export async function getDocumentTemplates(): Promise<{ templates: any[] }> {
+  return request<{ templates: any[] }>('/documents/templates', { method: 'GET' });
+}
+
+export async function generateDocument(payload: {
+  templateId?: string;
+  title: string;
+  fields?: Record<string, string>;
+  generateFigures?: boolean;
+}): Promise<{ success: boolean; document: any }> {
+  return request<{ success: boolean; document: any }>('/documents/generate', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getDocumentVersions(documentId: string): Promise<{ versions: any[] }> {
+  return request<{ versions: any[] }>(`/documents/${documentId}/versions`, { method: 'GET' });
+}
+
+export async function getChromaCollections(): Promise<{ collections: any[] }> {
+  return request<{ collections: any[] }>('/chroma/collections', { method: 'GET' });
+}
+
+export async function queryChroma(payload: {
+  collection: string;
+  queryText: string;
+  topK?: number;
+  filter?: Record<string, any>;
+}): Promise<{ collection: string; queryText: string; count: number; results: any[] }> {
+  return request<{ collection: string; queryText: string; count: number; results: any[] }>('/chroma/query', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function addChromaDocuments(payload: {
+  collection: string;
+  documents: { id?: string; document: string; metadata?: Record<string, any> }[];
+}): Promise<{ success: boolean; collection: string; addedIds: string[]; count: number }> {
+  return request<{ success: boolean; collection: string; addedIds: string[]; count: number }>('/chroma/add', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+
 

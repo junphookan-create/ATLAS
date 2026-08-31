@@ -24,6 +24,8 @@ import { executiveDashboardEngine } from '../executiveDashboardEngine.js';
 import { essayArchitectEngine } from '../essayArchitectEngine.js';
 import { sideHustleEngine } from '../sideHustleEngine.js';
 import { ideaIncubatorEngine } from '../ideaIncubatorEngine.js';
+import { documentGeneratorEngine } from '../documentGeneratorEngine.js';
+import { chromaDBEngine } from '../chromaEngine.js';
 import { multiTenantAuthMiddleware, postgresIdempotencyCheck, recordPostgresIdempotency, handleETag304, AuthenticatedRequest } from '../middleware.js';
 
 export const apiRouter = Router();
@@ -1961,6 +1963,61 @@ apiRouter.post('/features/execute', async (req: Request, res: Response) => {
     result: executionLog,
   });
 });
+
+// ==========================================
+// 21. MODULE 15: DOCUMENT GENERATOR (LaTeX / PDF / DOCX)
+// ==========================================
+apiRouter.get('/documents/templates', (req: Request, res: Response) => {
+  res.json({ templates: documentGeneratorEngine.getTemplates() });
+});
+
+apiRouter.post('/documents/generate', async (req: Request, res: Response) => {
+  const { templateId, title, fields, generateFigures } = req.body;
+  if (!title) {
+    res.status(400).json({ error: 'title is required' });
+    return;
+  }
+  const result = await documentGeneratorEngine.generateDocument({
+    templateId: templateId || 'tmpl-latex-ieee',
+    title,
+    fields: fields || {},
+    generateFigures: !!generateFigures,
+  });
+  res.json({ success: true, document: result });
+});
+
+apiRouter.get('/documents/:documentId/versions', (req: Request, res: Response) => {
+  const versions = documentGeneratorEngine.getDocumentVersions(req.params.documentId);
+  res.json({ versions });
+});
+
+// ==========================================
+// 22. CHROMADB VECTOR STORE & LTM RETRIEVAL
+// ==========================================
+apiRouter.get('/chroma/collections', (req: Request, res: Response) => {
+  res.json({ collections: chromaDBEngine.getCollectionStats() });
+});
+
+apiRouter.post('/chroma/query', async (req: Request, res: Response) => {
+  const { collection, queryText, topK, filter } = req.body;
+  if (!collection || !queryText) {
+    res.status(400).json({ error: 'collection and queryText are required' });
+    return;
+  }
+  const results = await chromaDBEngine.query(collection, queryText, topK || 5, filter);
+  res.json({ collection, queryText, count: results.length, results });
+});
+
+apiRouter.post('/chroma/add', async (req: Request, res: Response) => {
+  const { collection, documents } = req.body;
+  if (!collection || !Array.isArray(documents)) {
+    res.status(400).json({ error: 'collection and documents array are required' });
+    return;
+  }
+  const addedIds = await chromaDBEngine.addDocuments(collection, documents);
+  res.json({ success: true, collection, addedIds, count: addedIds.length });
+});
+
 
 
 
