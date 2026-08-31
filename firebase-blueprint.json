@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "createdAt"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Research notes and Google Keep sync records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "tags": { "type": "string" },
+        "isSyncedWithGoogle": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "ownerId", "title", "createdAt"]
+    },
+    "SheetTracker": {
+      "title": "SheetTracker",
+      "description": "Google Sheets tracking integration documents",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "spreadsheetId": { "type": "string" },
+        "title": { "type": "string" },
+        "sheetUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "ownerId", "title", "createdAt"]
+    },
+    "Presentation": {
+      "title": "Presentation",
+      "description": "Google Slides presentations and pitch decks",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "presentationId": { "type": "string" },
+        "title": { "type": "string" },
+        "slideUrl": { "type": "string" },
+        "topic": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "ownerId", "title", "createdAt"]
+    },
+    "FormSurvey": {
+      "title": "FormSurvey",
+      "description": "Google Forms surveys and questionnaires",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "formId": { "type": "string" },
+        "title": { "type": "string" },
+        "formUrl": { "type": "string" },
+        "responderUri": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "ownerId", "title", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile collection"
+    },
+    "/notes/{noteId}": {
+      "schema": "Note",
+      "description": "User notes and research records"
+    },
+    "/sheets_trackers/{trackerId}": {
+      "schema": "SheetTracker",
+      "description": "Google Sheets tracking integrations"
+    },
+    "/presentations/{presentationId}": {
+      "schema": "Presentation",
+      "description": "Google Slides pitch presentations"
+    },
+    "/forms_surveys/{formId}": {
+      "schema": "FormSurvey",
+      "description": "Google Forms survey integrations"
+    }
+  }
+}
