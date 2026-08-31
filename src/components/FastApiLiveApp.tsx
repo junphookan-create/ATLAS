@@ -64,10 +64,22 @@ import { StartupGrowthSection } from './fastapi/StartupGrowthSection';
 import { AiLabSection } from './fastapi/AiLabSection';
 import { MasterFeatureCatalogSection } from './fastapi/MasterFeatureCatalogSection';
 import { WorkspaceHubSection } from './fastapi/WorkspaceHubSection';
-import { Zap } from 'lucide-react';
+import { FullStackArchitectureSection } from './fastapi/FullStackArchitectureSection';
+import { CeleryWorkerDashboardView } from './modules/CeleryWorkerDashboardView';
+import { BrandCollabView } from './modules/BrandCollabView';
+import { BrowserAgentView } from './modules/BrowserAgentView';
+import { DocumentGeneratorView } from './modules/DocumentGeneratorView';
+import { EmailAssistantView } from './modules/EmailAssistantView';
+import { IdeaIncubatorView } from './modules/IdeaIncubatorView';
+import { SideHustleScraperView } from './modules/SideHustleScraperView';
+import { EssayArchitectView } from './modules/EssayArchitectView';
+import { ProjectBuilderView } from './modules/ProjectBuilderView';
+import { Zap, Server, Briefcase, Globe, FileCheck, Mail, Lightbulb, TrendingUp, PenTool, GitBranch } from 'lucide-react';
 
 export type FastApiTabId =
   | 'command_center'
+  | 'architecture_stack'
+  | 'celery_redis'
   | 'workspace'
   | 'features_catalog'
   | 'approvals'
@@ -77,10 +89,18 @@ export type FastApiTabId =
   | 'grants'
   | 'research'
   | 'outreach'
-  | 'calendar'
-  | 'knowledge'
+  | 'brand_collab'
   | 'social'
   | 'startup'
+  | 'idea_incubator'
+  | 'side_hustle'
+  | 'email_assistant'
+  | 'calendar'
+  | 'knowledge'
+  | 'browser_agent'
+  | 'project_builder'
+  | 'document_generator'
+  | 'essay_architect'
   | 'ai_lab';
 
 export const FastApiLiveApp: React.FC = () => {
@@ -460,6 +480,18 @@ export const FastApiLiveApp: React.FC = () => {
   const navTabs = [
     { id: 'command_center', label: 'Executive Dashboard', icon: Sparkles },
     {
+      id: 'architecture_stack',
+      label: 'FastAPI & AI Stack',
+      icon: Server,
+      badge: 'FastAPI/pgvector',
+    },
+    {
+      id: 'celery_redis',
+      label: 'Celery & Redis Streams',
+      icon: Cpu,
+      badge: 'Async',
+    },
+    {
       id: 'workspace',
       label: 'Google Workspace & Firebase',
       icon: Share2,
@@ -483,10 +515,18 @@ export const FastApiLiveApp: React.FC = () => {
     { id: 'grants', label: 'Grants & Fellowships', icon: FileText },
     { id: 'research', label: 'Research & Hypotheses', icon: Microscope },
     { id: 'outreach', label: 'Outreach CRM', icon: Users },
-    { id: 'calendar', label: 'Calendar Intelligence', icon: Calendar },
-    { id: 'knowledge', label: 'Knowledge Graph', icon: Network },
+    { id: 'brand_collab', label: 'Brand Collab & Deals', icon: Briefcase },
     { id: 'social', label: 'Social Media Engine', icon: Share2 },
     { id: 'startup', label: 'Startup Growth', icon: Rocket },
+    { id: 'idea_incubator', label: 'Autonomous Idea Incubator', icon: Lightbulb },
+    { id: 'side_hustle', label: 'Side Hustle Scraper', icon: TrendingUp },
+    { id: 'email_assistant', label: 'Smart Email Assistant', icon: Mail },
+    { id: 'calendar', label: 'Calendar Intelligence', icon: Calendar },
+    { id: 'knowledge', label: 'Knowledge Graph', icon: Network },
+    { id: 'browser_agent', label: 'Browser Agent (Playwright)', icon: Globe },
+    { id: 'project_builder', label: 'Project Builder (WBS)', icon: GitBranch },
+    { id: 'document_generator', label: 'Document Studio (LaTeX)', icon: FileCheck },
+    { id: 'essay_architect', label: 'Social Advice & Essays', icon: PenTool },
     { id: 'ai_lab', label: 'AI Model Router', icon: Cpu },
   ];
 
@@ -720,6 +760,14 @@ export const FastApiLiveApp: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'architecture_stack' && (
+            <FullStackArchitectureSection />
+          )}
+
+          {activeTab === 'celery_redis' && (
+            <CeleryWorkerDashboardView />
+          )}
+
           {activeTab === 'workspace' && (
             <WorkspaceHubSection />
           )}
@@ -791,6 +839,40 @@ export const FastApiLiveApp: React.FC = () => {
             />
           )}
 
+          {activeTab === 'brand_collab' && (
+            <BrandCollabView />
+          )}
+
+          {activeTab === 'social' && (
+            <SocialMediaSection
+              posts={socialPosts}
+              isLoading={isLoadingAll}
+              onGeneratePost={handleGenerateSocial}
+            />
+          )}
+
+          {activeTab === 'startup' && (
+            <StartupGrowthSection
+              landingPages={landingPages}
+              pitchDecks={pitchDecks}
+              isLoading={isLoadingAll}
+              onGenerateLandingPage={handleGenerateLandingPage}
+              onGeneratePitchDeck={handleGeneratePitchDeck}
+            />
+          )}
+
+          {activeTab === 'idea_incubator' && (
+            <IdeaIncubatorView />
+          )}
+
+          {activeTab === 'side_hustle' && (
+            <SideHustleScraperView />
+          )}
+
+          {activeTab === 'email_assistant' && (
+            <EmailAssistantView />
+          )}
+
           {activeTab === 'calendar' && (
             <CalendarSection
               events={calendarEvents}
@@ -812,22 +894,20 @@ export const FastApiLiveApp: React.FC = () => {
             />
           )}
 
-          {activeTab === 'social' && (
-            <SocialMediaSection
-              posts={socialPosts}
-              isLoading={isLoadingAll}
-              onGeneratePost={handleGenerateSocial}
-            />
+          {activeTab === 'browser_agent' && (
+            <BrowserAgentView />
           )}
 
-          {activeTab === 'startup' && (
-            <StartupGrowthSection
-              landingPages={landingPages}
-              pitchDecks={pitchDecks}
-              isLoading={isLoadingAll}
-              onGenerateLandingPage={handleGenerateLandingPage}
-              onGeneratePitchDeck={handleGeneratePitchDeck}
-            />
+          {activeTab === 'project_builder' && (
+            <ProjectBuilderView />
+          )}
+
+          {activeTab === 'document_generator' && (
+            <DocumentGeneratorView />
+          )}
+
+          {activeTab === 'essay_architect' && (
+            <EssayArchitectView />
           )}
 
           {activeTab === 'ai_lab' && (
