@@ -31,7 +31,11 @@ app.get('/sse/approvals', handleSSEApprovals);
 // Mount Modular API Router
 app.use('/api', apiRouter);
 
-// API Health
+// API Health Check endpoints
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'Atlas AI Orchestrator Core', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'Atlas AI Orchestrator Core', timestamp: new Date().toISOString() });
 });

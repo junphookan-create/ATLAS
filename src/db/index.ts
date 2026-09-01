@@ -19,12 +19,17 @@ export const createPool = () => {
 
     global._postgresPool = new Pool(
       connectionString
-        ? { connectionString, max: 10, connectionTimeoutMillis: 5000 }
-        : { host, user, password, database, max: 10, connectionTimeoutMillis: 5000 }
+        ? { connectionString, max: 10, connectionTimeoutMillis: 3000, idleTimeoutMillis: 10000 }
+        : { host, user, password, database, max: 10, connectionTimeoutMillis: 3000, idleTimeoutMillis: 10000 }
     );
 
-    global._postgresPool.on('error', (err) => {
-      console.warn('Postgres SQL pool error (non-fatal):', err.message);
+    global._postgresPool.on('error', (err: any) => {
+      // Gracefully capture unexpected terminations or connection drops without crashing
+      if (err?.message?.includes('Connection terminated') || err?.code === 'ECONNREFUSED' || err?.code === '57P01') {
+        // Expected when running in demo container or when database connection resets
+        return;
+      }
+      console.warn('Postgres SQL pool notice (handled):', err?.message || err);
     });
   }
   return global._postgresPool;
